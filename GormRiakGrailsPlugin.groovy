@@ -8,10 +8,18 @@ class GormRiakGrailsPlugin {
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "1.3.3 > *"
     // the other plugins this plugin depends on
-    def dependsOn = [:]
+    def dependsOn = [core: '1.3.3 > *',
+             hibernate: '1.2 > *'
+    ]
+    
+    def loadAfter = ['core', 'domainClass', 'hibernate']
+    
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-            "grails-app/views/error.gsp"
+            "grails-app/views/error.gsp",
+            "grails-app/domain/**/*",
+            "test/**/*",
+            "web-app/**"
     ]
 
     def artefacts = [RiakDomainClassArtefactHandler]
@@ -32,7 +40,7 @@ class GormRiakGrailsPlugin {
     def doWithSpring = RiakPluginSupport.doWithSpring
 
     def doWithDynamicMethods = RiakPluginSupport.doWithDynamicMethods
-
+/*
 //    def doWithSpring = {
 //        // TODO Implement runtime spring config (optional)
 //    }
@@ -54,5 +62,5 @@ class GormRiakGrailsPlugin {
     def onConfigChange = { event ->
         // TODO Implement code that is executed when the project configuration changes.
         // The event is the same as for 'onChange'.
-    }
+    } */
 }
