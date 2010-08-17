@@ -16,6 +16,7 @@ public class RiakDomainClassArtefactHandler extends ArtefactHandlerAdapter {
         super(TYPE, RiakDomainClass.class, RiakDomainClass.class, null);
     }
 
+    @Override
     public boolean isArtefactClass(Class clazz) {
         return isRiakDomainClass(clazz);
     }
@@ -24,6 +25,7 @@ public class RiakDomainClassArtefactHandler extends ArtefactHandlerAdapter {
         return clazz != null && clazz.getAnnotation(RiakEntity.class) != null;
     }
 
+    @Override
     public GrailsClass newArtefactClass(Class artefactClass) {
         return new RiakDomainClass(artefactClass);
     }
