@@ -193,6 +193,9 @@ public class RiakDomainClass extends AbstractGrailsClass implements GrailsDomain
         return this.version;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
     public String getType() {
         return this.type;
     }
@@ -522,6 +525,7 @@ public class RiakDomainClass extends AbstractGrailsClass implements GrailsDomain
             return false;
         }
 
+        @Override
         public String toString() {
             String assType = null;
             if (isManyToMany()) {
