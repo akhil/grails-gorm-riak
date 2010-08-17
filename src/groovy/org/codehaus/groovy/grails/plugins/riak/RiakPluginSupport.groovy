@@ -126,28 +126,16 @@ public class RiakPluginSupport {
         }
 
         metaClass.save = {Map args = [:] ->
-
             // todo: add support for failOnError:true in grails 1.2 (GRAILS-4343)
             if (validate()) {
-                def object = autoTimeStamp(application, delegate)
-                println dc.inspect()
-                println object.inspect()
-				String bucket = "test"
+				def object = autoTimeStamp(application, delegate)
+				String bucket = domainClass.clazz.getName()
 				String key = getDocumentId(dc, object)
 				String value = (object as JSON).toString()
-				println bucket
-				println key
-				println value
-				def newo = new RiakObject(bucket, key, value.getBytes())
-                try {
-					def oo = riak.store( newo )
-					println oo.inspect()
-                } catch (Exception e) {
-					e.printStackTrace()
-				}
-                return object
+				def o = new RiakObject(bucket, key, value.getBytes())
+				// return if save successfull
+				if (riak.store(o).status == 200) return object
             }
-
             return null
         }
 
@@ -156,12 +144,12 @@ public class RiakPluginSupport {
         }
 
         metaClass.delete = {Map args = [:] ->
-            riak.delete getDocumentId(domainClass, delegate), getDocumentVersion(domainClass, delegate)
+            riak.delete domainClass.clazz.getName(), getDocumentId(domainClass, delegate)
         }
         
-        metaClass.toJSON = {->
+        /*metaClass.toJSON = {->
             return db.jsonConfig.getJsonGenerator().forValue(delegate);
-        }
+        }*/
     }
 
     private static addStaticMethods(GrailsApplication application, RiakDomainClass dc, ApplicationContext ctx, RiakClient db) {
@@ -170,7 +158,7 @@ public class RiakPluginSupport {
         def riak = db
 
         metaClass.static.get = {Serializable docId ->
-            def riak_object = riak.fetch("test", docId.toString()).getObject()
+            def riak_object = riak.fetch(domainClass.clazz.getName(), docId.toString()).getObject()
             if (riak_object == null) return null
             return domainClass.clazz.newInstance(JSON.parse(riak_object.getValue()))
         }
@@ -213,7 +201,7 @@ public class RiakPluginSupport {
         }
 
         metaClass.static.count = {String viewName, Map o = [:] ->
-			def r = riak.listBucket("test")
+			def r = riak.listBucket(domainClass.clazz.getName())
 			if (r.isSuccess()) {
 				return r.getBucketInfo().getKeys().size()
 			}
@@ -226,7 +214,7 @@ public class RiakPluginSupport {
 
         metaClass.static.list = {String viewName, Map o = [:] ->
             def view = viewName
-            def r = riak.listBucket("test")
+            def r = riak.listBucket(domainClass.clazz.getName())
 			if (r.isSuccess()) {
 				def info = r.getBucketInfo()
 				return info.getKeys().collect { key ->
