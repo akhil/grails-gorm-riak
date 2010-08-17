@@ -23,7 +23,8 @@ log4j = {
     warn   'org.mortbay.log'
     
     riak = {
-        host = "173.230.146.94"
+        host = "118.102.131.73"
         // port = 
+        database = "riak"
     }
 }
