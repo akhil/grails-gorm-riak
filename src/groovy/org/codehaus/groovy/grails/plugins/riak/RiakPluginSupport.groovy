@@ -20,6 +20,7 @@ import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.Errors
 import grails.converters.JSON
 import com.basho.riak.client.RiakClient
+import com.basho.riak.client.RiakObject
 
 
 /**
@@ -128,9 +129,23 @@ public class RiakPluginSupport {
 
             // todo: add support for failOnError:true in grails 1.2 (GRAILS-4343)
             if (validate()) {
-                riak.createOrUpdateDocument autoTimeStamp(application, delegate)
-
-                return delegate
+                def object = autoTimeStamp(application, delegate)
+                println dc.inspect()
+                println object.inspect()
+				String bucket = "test"
+				String key = getDocumentId(dc, object)
+				String value = (object as JSON).toString()
+				println bucket
+				println key
+				println value
+				def newo = new RiakObject(bucket, key, value.getBytes())
+                try {
+					def oo = riak.store( newo )
+					println oo.inspect()
+                } catch (Exception e) {
+					e.printStackTrace()
+				}
+                return object
             }
 
             return null
@@ -155,9 +170,9 @@ public class RiakPluginSupport {
         def riak = db
 
         metaClass.static.get = {Serializable docId ->
-            def riak_object = riak.fetch(domainClass.clazz, docId.toString()).getObject()
+            def riak_object = riak.fetch("test", docId.toString()).getObject()
             if (riak_object == null) return null
-            return JSON.parse(riak_object.getValue())
+            return domainClass.clazz.newInstance(JSON.parse(riak_object.getValue()))
         }
 
         // Foo.exists(1)
@@ -198,7 +213,11 @@ public class RiakPluginSupport {
         }
 
         metaClass.static.count = {String viewName, Map o = [:] ->
-        
+			def r = riak.listBucket("test")
+			if (r.isSuccess()) {
+				return r.getBucketInfo().getKeys().size()
+			}
+			return 0
         }
 
         metaClass.static.list = {Map o = [:] ->
@@ -207,11 +226,15 @@ public class RiakPluginSupport {
 
         metaClass.static.list = {String viewName, Map o = [:] ->
             def view = viewName
-            if (!view) {
-                view = "list"
-            }
-
-            return queryView(view, o)
+            def r = riak.listBucket("test")
+			if (r.isSuccess()) {
+				def info = r.getBucketInfo()
+				return info.getKeys().collect { key ->
+					println key
+					get(key)
+				}
+			}
+            return []
         }
 
     }
@@ -394,7 +417,7 @@ public class RiakPluginSupport {
         Integer port = ds?.port ?: 8098
         System.err << host
         String database = ds?.database ?: application.metadata["app.name"]
-        def riak = new RiakClient("http://${host}:${port}/database")        
+        def riak = new RiakClient("http://${host}:${port}/${database}")        
         return riak
     }
 
