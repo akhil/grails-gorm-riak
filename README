@@ -1,3 +1,13 @@
 Riak Support from GORM
 
-Work in progress not usuable
+Work in progress...save, delete and get work
+list fetched all the elements from bucket
+
+
+TODO:
+1. Get list to work with paramaters
+2. Migrate to PBC API from REST API
+3. Add Associations/Links
+4. Ability to specify buckets for a domain classes
+5. ID generators while saving
+6. MapReduce logic from js files
