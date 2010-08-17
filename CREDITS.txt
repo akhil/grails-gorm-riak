@@ -1,0 +1,1 @@
+Codebase and structure derived from http://github.com/coryhacking/gorm-couchdb
